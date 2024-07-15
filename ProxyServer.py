@@ -14,6 +14,8 @@ ADDR = (SERVER, PORT)
 serverInfo = {'BLACKLISTDOMAINS':["tiktok.com"]}
 
 
+
+
 class proxyServer:
     def __init__(self):
         # shutdown on Ctrl+c
@@ -24,6 +26,7 @@ class proxyServer:
         self.server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR,1)
         #bind the socket to a public host, and a port
         self.server.bind(ADDR)
+
 
         self.server.listen(10)
         print(f"[LISTENING] Server is listening on {SERVER}")
@@ -72,7 +75,7 @@ class proxyServer:
             port = 443
 
         # wraps in ssl required for https
-        context = ssl.create_default_context()
+        context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)#--> need CA certificate and server keys to function
         remote_server = socket.create_connection((webserver,port))
         remote_server = context.wrap_socket(remote_server,server_hostname=webserver)
         remote_server.sendall(request.encode(FORMAT))
@@ -139,6 +142,7 @@ class proxyServer:
             request = conn.recv(HEADER).decode(FORMAT)
             if not request:
                 return
+            print(f'Addr:{addr}, Request:{request}')
             first_line = request.split('\n')[0]
             method = first_line.split(' ')[0]
             url = first_line.split(' ')[1]
